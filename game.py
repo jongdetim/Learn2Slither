@@ -5,14 +5,12 @@ import sys
 class Apple:
     def __init__(self, color):
         self.color = color
-        self.x = 0
-        self.y = 0
+        self.position = (0, 0)
 
     def relocate(self, grid_size, occupied_positions):
-        while True:
-            self.x = random.randint(0, grid_size - 1)
-            self.y = random.randint(0, grid_size - 1)
-            if (self.x, self.y) not in occupied_positions:
+        while True and len(occupied_positions) < grid_size ** 2:
+            self.position = (random.randint(0, grid_size - 1), random.randint(0, grid_size - 1))
+            if (self.position) not in occupied_positions:
                 break
 
 class Snake:
@@ -100,9 +98,7 @@ class SnakeGame:
         self._relocate_apples()
         self.game_over = False
 
-    def play(self):
-        move_event = pygame.USEREVENT + 1
-        pygame.time.set_timer(move_event, 200)  # Move every 200 ms
+    def play(self, fps=5):
         
         running = True
         while running:
@@ -123,19 +119,20 @@ class SnakeGame:
                     elif event.key == pygame.K_SPACE and self.game_over:
                         # Start a new game
                         self.reset_game()
+                        pygame.event.clear()  # Clear the event queue to remove any lingering events
                 
-                # Move snake on timer event
-                if event.type == move_event and not self.game_over:
-                    # Save current snake state before moving (if game over is not set)
-                    if not self.game_over:
-                        self.saved_snake_body = list(self.snake.body)
-                    
-                    # Move snake
-                    self.snake.move()
-                    
-                    # Check for collisions
-                    if not self._check_collisions():
-                        self.game_over = True
+            # Move snake
+            if not self.game_over:
+                # Save current snake state before moving (if game over is not set)
+                if not self.game_over:
+                    self.saved_snake_body = list(self.snake.body)
+                
+                # Move snake
+                self.snake.move()
+                
+                # Check for collisions
+                if not self._check_collisions():
+                    self.game_over = True
             
             # Draw game state only if the game is still running
             if not self.game_over:
@@ -148,7 +145,7 @@ class SnakeGame:
                 self._draw_game_over()
             
             # Control frame rate
-            self.clock.tick(60)
+            self.clock.tick(fps)
         
         pygame.quit()
         sys.exit()
@@ -175,28 +172,34 @@ class SnakeGame:
         # Draw green apples (from current state)
         for apple in self.green_apples:
             pygame.draw.rect(self.screen, self.colors['green_apple'], 
-                            (grid_offset + apple.x * self.block_size, 
-                            grid_offset + apple.y * self.block_size, 
+                            (grid_offset + apple.position[0] * self.block_size, 
+                            grid_offset + apple.position[1] * self.block_size, 
                             self.block_size, 
                             self.block_size))
         
         # Draw red apple (from current state)
         pygame.draw.rect(self.screen, self.colors['red_apple'], 
-                        (grid_offset + self.red_apple.x * self.block_size, 
-                        grid_offset + self.red_apple.y * self.block_size, 
+                        (grid_offset + self.red_apple.position[0] * self.block_size, 
+                        grid_offset + self.red_apple.position[1] * self.block_size, 
                         self.block_size, 
                         self.block_size))
         
-        # Draw the grid (grey lines)
-        grid_color = (169, 169, 169)  # Light grey color for the grid
+        # Draw the grid (black lines)
         for x in range(self.grid_size + 1):
-            pygame.draw.line(self.screen, grid_color, 
+            pygame.draw.line(self.screen, self.colors['background'], 
                             (grid_offset + x * self.block_size, grid_offset), 
                             (grid_offset + x * self.block_size, self.screen_size - self.margin))
         for y in range(self.grid_size + 1):
-            pygame.draw.line(self.screen, grid_color, 
+            pygame.draw.line(self.screen, self.colors['background'], 
                             (grid_offset, grid_offset + y * self.block_size), 
                             (self.screen_size - self.margin, grid_offset + y * self.block_size))
+
+        # Draw bounding box (grey lines)
+        pygame.draw.rect(self.screen, (150, 150, 150), 
+                        (grid_offset, grid_offset, 
+                        self.grid_size * self.block_size, 
+                        self.grid_size * self.block_size), 1)
+        
         if not self.game_over:
             pygame.display.flip()
 
@@ -223,29 +226,28 @@ class SnakeGame:
         
         # Apple eating
         for apple in self.green_apples:
-            if head == (apple.x, apple.y):
+            if head == (apple.position[0], apple.position[1]):
                 self.snake.grow()
-                apple.relocate(self.grid_size, set(self.snake.body + self.green_apples + [self.red_apple]))
+                apple.relocate(self.grid_size, self.snake.body + [apple.position for apple in self.green_apples] + [self.red_apple.position])
         
-        if head == (self.red_apple.x, self.red_apple.y):
+        if head == (self.red_apple.position[0], self.red_apple.position[1]):
             self.snake.shrink()
-            self.red_apple.relocate(self.grid_size, set(self.snake.body + [self.red_apple] + self.green_apples))
+            self.red_apple.relocate(self.grid_size, self.snake.body + [apple.position for apple in self.green_apples] + [self.red_apple.position])
 
-        # print(len(set(self.snake.body + [self.red_apple] + self.green_apples)))
+        # print(self.snake.body + [apple.position for apple in self.green_apples] + [self.red_apple.position])
 
         return True
 
     def _relocate_apples(self):
         occupied = set(self.snake.body)
-        occupied.update((apple.x, apple.y) for apple in self.green_apples + [self.red_apple])
 
         for apple in self.green_apples + [self.red_apple]:
             apple.relocate(self.grid_size, occupied)
-            occupied.add((apple.x, apple.y))
+            occupied.add(apple)
 
 def main():
     game = SnakeGame(grid_size=10, block_size=50)
-    game.play()
+    game.play(fps=5)
 
 if __name__ == "__main__":
     main()
