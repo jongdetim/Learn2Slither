@@ -14,12 +14,50 @@ class Apple:
                 break
 
 class Snake:
-    def __init__(self, grid_size):
-        center = grid_size // 2
-        self.body = [(center, center)]
-        self.direction = (1, 0)  # Initially moving right
+    def __init__(self, grid_size, random_start=True):
         self.grid_size = grid_size
-        self.input_buffer = []  # Input buffer for direction changes
+        self.reset(grid_size, random_start)
+
+    def reset(self, grid_size, random_start=True):
+        center = grid_size // 2
+        self.input_buffer = []  # Input buffer for directional input
+        if random_start:
+            self.body = self._generate_random_snake()
+            self.direction = self._initial_direction()
+        else:
+            self.body = [(center, center)]
+            self.direction = (1, 0)  # Initially moving right
+
+    def _generate_random_snake(self):
+        """
+        Generate a random contiguous starting position for the snake of length 3.
+        """
+        # Randomly choose an initial direction
+        possible_directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
+        initial_direction = random.choice(possible_directions)
+        
+        # Randomly choose a starting head position
+        max_x = self.grid_size - 3 if initial_direction[0] != 0 else self.grid_size - 1
+        max_y = self.grid_size - 3 if initial_direction[1] != 0 else self.grid_size - 1
+        
+        start_x = random.randint(0, max_x)
+        start_y = random.randint(0, max_y)
+        
+        # Generate contiguous body segments
+        body = [
+            (start_x, start_y),
+            (start_x - initial_direction[0], start_y - initial_direction[1]),
+            (start_x - 2 * initial_direction[0], start_y - 2 * initial_direction[1]),
+        ]
+        return body
+
+    def _initial_direction(self):
+        """
+        Determine the initial movement direction based on the snake's starting position.
+        """
+        # The direction is determined by the order of body segments
+        head, neck = self.body[0], self.body[1]
+        return (head[0] - neck[0], head[1] - neck[1])
 
     def move(self):
         if self.input_buffer:
@@ -55,9 +93,10 @@ class Snake:
         return new_direction == opposite_directions.get(self.direction)
 
 class SnakeGame:
-    def __init__(self, grid_size=10, block_size=50, margin=50):
+    def __init__(self, grid_size=10, block_size=50, margin=50, random_start=True):
         pygame.init()
         
+        self.random_start = random_start
         self.grid_size = grid_size
         self.block_size = block_size
         self.margin = margin
@@ -89,10 +128,7 @@ class SnakeGame:
 
     def reset_game(self):
         # Reset snake
-        center = self.grid_size // 2
-        self.snake.body = [(center, center)]
-        self.snake.direction = (1, 0)  # Initially moving right
-        self.snake.next_direction = self.snake.direction
+        self.snake.reset(self.grid_size, random_start=self.random_start)
 
         # Reset apples
         self._relocate_apples()
