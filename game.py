@@ -93,16 +93,20 @@ class Snake:
         return new_direction == opposite_directions.get(self.direction)
 
 class SnakeGame:
-    def __init__(self, grid_size=10, block_size=50, margin=50, random_start=True):
-        pygame.init()
-        
+    def __init__(self, grid_size=10, random_start=True, render=True, block_size=50, margin=50):
         self.random_start = random_start
         self.grid_size = grid_size
-        self.block_size = block_size
-        self.margin = margin
-        self.screen_size = (grid_size * block_size) + 2 * margin  # Make the window larger than the grid
-        self.screen = pygame.display.set_mode((self.screen_size, self.screen_size))
-        pygame.display.set_caption("Snake Game")
+        self.render = render
+
+        if render:
+            self.block_size = block_size
+            self.margin = margin
+            self.screen_size = (grid_size * block_size) + 2 * margin  # Make the window larger than the grid
+            pygame.init()
+            self.screen = pygame.display.set_mode((self.screen_size, self.screen_size))
+            pygame.display.set_caption("Snake")
+            self.clock = pygame.time.Clock()
+            self.font = pygame.font.Font(None, 69)
         
         self.snake = Snake(grid_size)
         
@@ -121,10 +125,8 @@ class SnakeGame:
         
         # Randomize initial apple positions
         self._relocate_apples()
-        
-        self.clock = pygame.time.Clock()
+
         self.game_over = False
-        self.font = pygame.font.Font(None, 36)
 
     def reset_game(self):
         # Reset snake
@@ -134,8 +136,10 @@ class SnakeGame:
         self._relocate_apples()
         self.game_over = False
 
-    def play(self, fps=5):
-        
+    def human_play(self, fps=5):
+        if self.render == False:
+            raise ValueError("Rendering must be enabled to play the game manually.")
+
         running = True
         while running:
             for event in pygame.event.get():
@@ -169,16 +173,13 @@ class SnakeGame:
                 # Check for collisions
                 if not self._check_collisions():
                     self.game_over = True
-            
-            # Draw game state only if the game is still running
-            if not self.game_over:
+
+                # Draw game state
                 self._draw()
-            
-            # If the game is over, render the saved state
-            if self.game_over:
-                self.snake.body = self.saved_snake_body
-                self._draw()
-                self._draw_game_over()
+                
+                # If the game is over, render game over text
+                if self.game_over:
+                    self._draw_game_over()
             
             # Control frame rate
             self.clock.tick(fps)
@@ -194,7 +195,7 @@ class SnakeGame:
         grid_offset = self.margin
         
         # Draw snake body (from saved state if game is over)
-        snake_body_to_draw = self.saved_snake_body if self.game_over else self.snake.body
+        snake_body_to_draw = self.snake.body
         
         for i, segment in enumerate(snake_body_to_draw):
             # Head is white, body is light gray
@@ -241,7 +242,7 @@ class SnakeGame:
 
     def _draw_game_over(self):        
         # Display "Game Over" message in the center
-        text = self.font.render("Game Over", True, (255, 0, 0))
+        text = self.font.render("GAME OVER", True, (255, 200, 0))
         text_rect = text.get_rect(center=(self.screen_size // 2, self.screen_size // 2))
         self.screen.blit(text, text_rect)
         
@@ -267,8 +268,11 @@ class SnakeGame:
                 apple.relocate(self.grid_size, self.snake.body + [apple.position for apple in self.green_apples] + [self.red_apple.position])
         
         if head == (self.red_apple.position[0], self.red_apple.position[1]):
-            self.snake.shrink()
             self.red_apple.relocate(self.grid_size, self.snake.body + [apple.position for apple in self.green_apples] + [self.red_apple.position])
+            if len(self.snake.body) > 1:
+                self.snake.shrink()
+            else:
+                return False
 
         # print(self.snake.body + [apple.position for apple in self.green_apples] + [self.red_apple.position])
 
@@ -281,9 +285,19 @@ class SnakeGame:
             apple.relocate(self.grid_size, occupied)
             occupied.add(apple)
 
+# this main function should be two serparate files, like 'human_play.py' and 'train_agent.py'
 def main():
-    game = SnakeGame(grid_size=10, block_size=50)
-    game.play(fps=5)
+    # human play
+    game = SnakeGame(grid_size=10, random_start=False, render=True, block_size=50, margin=50)
+    game.human_play(fps=5)
+
+    # ai agent training (to be implemented!)
+    game = SnakeGame(grid_size=10, random_start=True, render=False)
+    while game.game_over == False:
+        last_happening, state = game.get_data()
+        reward, vision = interpret(state, last_happening)
+        action = agent.choose_action(reward, vision)
+        game.take_action(action)
 
 if __name__ == "__main__":
     main()
