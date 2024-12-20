@@ -2,6 +2,8 @@ import pygame
 import random
 import sys
 
+from constants import LastHappening
+
 class Apple:
     def __init__(self, color):
         self.color = color
@@ -126,6 +128,7 @@ class SnakeGame:
         # Randomize initial apple positions
         self._relocate_apples()
 
+        self.last_happening = LastHappening.NONE
         self.game_over = False
 
     def reset_game(self):
@@ -171,7 +174,8 @@ class SnakeGame:
                 self.snake.move()
                 
                 # Check for collisions
-                if not self._check_collisions():
+                if self._check_collisions():
+                    self.last_happening = LastHappening.DIED
                     self.game_over = True
 
                 # Draw game state
@@ -186,6 +190,9 @@ class SnakeGame:
         
         pygame.quit()
         sys.exit()
+
+    def get_data(self):
+        return self.grid_size, self.last_happening, self.snake.body, self.green_apples, self.red_apple
 
     def _draw(self):
         # Clear screen
@@ -250,33 +257,37 @@ class SnakeGame:
 
 
     def _check_collisions(self):
+        # returns True if the snake dies, False otherwise
         head = self.snake.body[0]
         
         # Wall collision
         if (head[0] < 0 or head[0] >= self.grid_size or 
             head[1] < 0 or head[1] >= self.grid_size):
-            return False
+            return True
         
-        # Self collision (checking all body segments except the neck)
+        # Self collision
         if head in self.snake.body[1:]:
-            return False
+            return True
         
         # Apple eating
         for apple in self.green_apples:
             if head == (apple.position[0], apple.position[1]):
                 self.snake.grow()
                 apple.relocate(self.grid_size, self.snake.body + [apple.position for apple in self.green_apples] + [self.red_apple.position])
-        
+                self.last_happening = LastHappening.GREEN_APPLE_EATEN
+                return False
+
         if head == (self.red_apple.position[0], self.red_apple.position[1]):
             self.red_apple.relocate(self.grid_size, self.snake.body + [apple.position for apple in self.green_apples] + [self.red_apple.position])
             if len(self.snake.body) > 1:
                 self.snake.shrink()
-            else:
+                self.last_happening = LastHappening.RED_APPLE_EATEN
                 return False
+            else:
+                return True
 
-        # print(self.snake.body + [apple.position for apple in self.green_apples] + [self.red_apple.position])
-
-        return True
+        self.last_happening = LastHappening.NO_COLLISION
+        return False
 
     def _relocate_apples(self):
         occupied = set(self.snake.body)
@@ -294,8 +305,7 @@ def main():
     # ai agent training (to be implemented!)
     game = SnakeGame(grid_size=10, random_start=True, render=False)
     while game.game_over == False:
-        last_happening, state = game.get_data()
-        reward, vision = interpret(state, last_happening)
+        reward, vision = interpret(game.get_data())
         action = agent.choose_action(reward, vision)
         game.take_action(action)
 
