@@ -1,22 +1,26 @@
 import pygame
 import random
 import sys
+from time import sleep
 
 from constants import LastHappening
 
 class Apple:
-    def __init__(self, color):
-        self.color = color
+    def __init__(self, type):
+        self.type = type
         self.position = (0, 0)
 
     def relocate(self, grid_size, occupied_positions):
-        while True and len(occupied_positions) < grid_size ** 2:
+        if len(occupied_positions) >= grid_size ** 2:
+            print(len(occupied_positions), occupied_positions)
+            input("NO SPACE FOR APPLES!!!")
+        while len(occupied_positions) < grid_size ** 2:
             self.position = (random.randint(0, grid_size - 1), random.randint(0, grid_size - 1))
-            if (self.position) not in occupied_positions:
+            if self.position not in occupied_positions:
                 break
 
 class Snake:
-    def __init__(self, grid_size, random_start=True):
+    def __init__(self, grid_size,random_start=True):
         self.grid_size = grid_size
         self.reset(grid_size, random_start)
 
@@ -27,7 +31,7 @@ class Snake:
             self.body = self._generate_random_snake()
             self.direction = self._initial_direction()
         else:
-            self.body = [(center, center)]
+            self.body = [(2, center), (1, center), (0, center)]
             self.direction = (1, 0)  # Initially moving right
 
     def _generate_random_snake(self):
@@ -71,14 +75,14 @@ class Snake:
         head_x, head_y = self.body[0]
         new_head = (head_x + self.direction[0], head_y + self.direction[1])
         self.body.insert(0, new_head)
-        self.body.pop()
+        # self.body.pop()
 
     def grow(self):
         tail = self.body[-1]
         self.body.append(tail)
 
     def shrink(self):
-        if len(self.body) > 1:
+        if len(self.body) > 0:
             self.body.pop()
 
     def add_direction_to_buffer(self, new_direction):
@@ -95,7 +99,16 @@ class Snake:
         return new_direction == opposite_directions.get(self.direction)
 
 class SnakeGame:
+    colors = {
+        'background': (0, 0, 0),
+        'snake_body': (200, 200, 200),
+        'snake_head': (255, 255, 255),
+        'green_apple': (0, 255, 0),
+        'red_apple': (255, 0, 0)
+    }
     def __init__(self, grid_size=10, random_start=True, render=True, block_size=50, margin=50):
+        if grid_size < 3:
+            raise ValueError("Grid size must be at least 3.")
         self.random_start = random_start
         self.grid_size = grid_size
         self.render = render
@@ -110,23 +123,15 @@ class SnakeGame:
             self.clock = pygame.time.Clock()
             self.font = pygame.font.Font(None, 69)
         
-        self.snake = Snake(grid_size)
+        self.snake = Snake(grid_size, random_start)
         
-        # Colors
-        self.colors = {
-            'background': (0, 0, 0),
-            'snake_body': (200, 200, 200),
-            'snake_head': (255, 255, 255),
-            'green_apple': (0, 255, 0),
-            'red_apple': (255, 0, 0)
-        }
         
         # Initialize apples
-        self.green_apples = [Apple(color='green') for _ in range(2)]
-        self.red_apple = Apple(color='red')
+        self.green_apples = [Apple(type='green') for _ in range(2)]
+        self.red_apple = Apple(type='red')
         
         # Randomize initial apple positions
-        self._relocate_apples()
+        self._reset_apples()
 
         self.last_happening = LastHappening.NONE
         self.game_over = False
@@ -136,13 +141,16 @@ class SnakeGame:
         self.snake.reset(self.grid_size, random_start=self.random_start)
 
         # Reset apples
-        self._relocate_apples()
+        self._reset_apples()
         self.game_over = False
 
     def human_play(self, fps=5):
         if self.render == False:
             raise ValueError("Rendering must be enabled to play the game manually.")
 
+        self._draw()
+        sleep(1)
+        self.clock.tick(fps)
         running = True
         while running:
             for event in pygame.event.get():
@@ -163,30 +171,26 @@ class SnakeGame:
                         # Start a new game
                         self.reset_game()
                         pygame.event.clear()  # Clear the event queue to remove any lingering events
-                
-            # Move snake
-            if not self.game_over:
-                # Save current snake state before moving (if game over is not set)
-                if not self.game_over:
-                    self.saved_snake_body = list(self.snake.body)
-                
+                        self._draw()
+                        sleep(1)
+                        self.clock.tick(fps)
+                        break
+            else:
                 # Move snake
-                self.snake.move()
-                
-                # Check for collisions
-                if self._check_collisions():
-                    self.last_happening = LastHappening.DIED
-                    self.game_over = True
+                if not self.game_over:                
+                    self.snake.move()
+                    
+                    if self._check_collisions():
+                        print("crashed and died")
+                        self.last_happening = LastHappening.DIED
+                        self.game_over = True
 
-                # Draw game state
-                self._draw()
+                    self._draw()
+                    
+                    if self.game_over:
+                        self._draw_game_over()
                 
-                # If the game is over, render game over text
-                if self.game_over:
-                    self._draw_game_over()
-            
-            # Control frame rate
-            self.clock.tick(fps)
+                self.clock.tick(fps)
         
         pygame.quit()
         sys.exit()
@@ -201,12 +205,9 @@ class SnakeGame:
         # Adjust drawing offset to center the grid within the window
         grid_offset = self.margin
         
-        # Draw snake body (from saved state if game is over)
-        snake_body_to_draw = self.snake.body
-        
-        for i, segment in enumerate(snake_body_to_draw):
+        for segment in reversed(self.snake.body):
             # Head is white, body is light gray
-            color = self.colors['snake_head'] if i == 0 else self.colors['snake_body']
+            color = self.colors['snake_head'] if segment == self.snake.body[0] else self.colors['snake_body']
             pygame.draw.rect(self.screen, color, 
                             (grid_offset + segment[0] * self.block_size, 
                             grid_offset + segment[1] * self.block_size, 
@@ -252,7 +253,6 @@ class SnakeGame:
         text = self.font.render("GAME OVER", True, (255, 200, 0))
         text_rect = text.get_rect(center=(self.screen_size // 2, self.screen_size // 2))
         self.screen.blit(text, text_rect)
-        
         pygame.display.flip()
 
 
@@ -271,14 +271,18 @@ class SnakeGame:
         
         # Apple eating
         for apple in self.green_apples:
-            if head == (apple.position[0], apple.position[1]):
-                self.snake.grow()
-                apple.relocate(self.grid_size, self.snake.body + [apple.position for apple in self.green_apples] + [self.red_apple.position])
+            if head == apple.position:
+                print("Green apple eaten")
+                # self.snake.grow()
+                apple.relocate(self.grid_size, set(self.snake.body + [apple.position for apple in self.green_apples] + [self.red_apple.position]))
                 self.last_happening = LastHappening.GREEN_APPLE_EATEN
                 return False
 
-        if head == (self.red_apple.position[0], self.red_apple.position[1]):
-            self.red_apple.relocate(self.grid_size, self.snake.body + [apple.position for apple in self.green_apples] + [self.red_apple.position])
+        if head == self.red_apple.position:
+            self.red_apple.relocate(self.grid_size, set(self.snake.body + [apple.position for apple in self.green_apples] + [self.red_apple.position]))
+            
+            print("Red apple eaten")
+            self.snake.shrink()
             if len(self.snake.body) > 1:
                 self.snake.shrink()
                 self.last_happening = LastHappening.RED_APPLE_EATEN
@@ -286,15 +290,17 @@ class SnakeGame:
             else:
                 return True
 
+        print("No collision")
+        self.snake.shrink()
         self.last_happening = LastHappening.NO_COLLISION
         return False
 
-    def _relocate_apples(self):
+    def _reset_apples(self):
         occupied = set(self.snake.body)
 
         for apple in self.green_apples + [self.red_apple]:
             apple.relocate(self.grid_size, occupied)
-            occupied.add(apple)
+            occupied.add(apple.position)
 
 # this main function should be two serparate files, like 'human_play.py' and 'train_agent.py'
 def main():
