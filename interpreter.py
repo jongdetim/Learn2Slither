@@ -29,7 +29,7 @@ def interpret(grid_size, last_happening, snake, green_apples, red_apple) -> tupl
                 raw_one_directional_vision.append('S')
                 if one_directional_vision[2] == None:
                     one_directional_vision[2] = distance
-            elif tuple(current) in red_apple:
+            elif tuple(current) == red_apple:
                 raw_one_directional_vision.append('R')
                 if one_directional_vision[1] == None:
                     one_directional_vision[1] = distance
