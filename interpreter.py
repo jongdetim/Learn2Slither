@@ -1,13 +1,5 @@
 
-from constants import LastHappening
-
-# zet dit als enum class in constants als Rewards
-REWARDS = [None] * 5
-REWARDS[LastHappening.NONE] = 0
-REWARDS[LastHappening.NO_COLLISION] = -1
-REWARDS[LastHappening.GREEN_APPLE_EATEN] = 10
-REWARDS[LastHappening.RED_APPLE_EATEN] = -10
-REWARDS[LastHappening.DIED] = -1000
+from constants import LastHappening, Rewards
 
 # vision is encoded as distance to nearest green, distance to nearest red, distance to nearest wall or body * [left, up, right, down]
 
@@ -51,7 +43,7 @@ def interpret(grid_size, last_happening, snake, green_apples, red_apple) -> tupl
         raw_vision.append(raw_one_directional_vision)
         vision.append(one_directional_vision)
 
-    return REWARDS[last_happening], vision, raw_vision
+    return Rewards(last_happening), vision, raw_vision
 
 def print_snake_vision(grid_size, head, raw_vision) -> None:
     output = [list(' ' * (grid_size + 2)) for _ in range(grid_size + 2)]
@@ -66,6 +58,3 @@ def print_snake_vision(grid_size, head, raw_vision) -> None:
 
     for row in output:
         print(''.join(row))
-
-reward, vision, raw_vision = interpret(10, LastHappening.NONE, [(4,4),(4,5)], [(2,2), (4,2)], (4,8))
-print_snake_vision(10, (4,4), raw_vision)
