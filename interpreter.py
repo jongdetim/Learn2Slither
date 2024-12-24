@@ -1,5 +1,5 @@
 
-from constants import LastHappening, Rewards
+from constants import LastHappening
 
 # vision is encoded as distance to nearest green, distance to nearest red, distance to nearest wall or body * [left, up, right, down]
 
@@ -43,7 +43,7 @@ def interpret(grid_size, last_happening, snake, green_apples, red_apple) -> tupl
         raw_vision.append(raw_one_directional_vision)
         vision.append(one_directional_vision)
 
-    return Rewards(last_happening), vision, raw_vision
+    return LastHappening.reward(last_happening), vision, raw_vision
 
 def print_snake_vision(grid_size, head, raw_vision) -> None:
     output = [list(' ' * (grid_size + 2)) for _ in range(grid_size + 2)]
@@ -58,3 +58,8 @@ def print_snake_vision(grid_size, head, raw_vision) -> None:
 
     for row in output:
         print(''.join(row))
+
+# testing
+reward, vision, raw_vision = interpret(10, LastHappening.DIED, [(2,2)], [(1,1)],(4,4))
+print_snake_vision(10, (2,2), raw_vision)
+print(reward)
