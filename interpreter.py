@@ -19,29 +19,28 @@ def interpret(grid_size, last_happening, snake, green_apples, red_apple) -> tupl
     for direction in [(-1, 0), (0, -1), (1, 0), (0, 1)]: #left, up, right, down
         raw_one_directional_vision = [] # used for printing according to subject
         one_directional_vision = [None, None, None] # green, red, wall/snake
-        current = list(head)
-        current[0] += direction[0]
-        current[1] += direction[1]
+        cursor = list(head)
+        cursor[0] += direction[0]
+        cursor[1] += direction[1]
         distance = 1
-        while 0 <= current[0] < grid_size and 0 <= current[1] < grid_size:
-            print(current)
-            if tuple(current) in snake:
+        while 0 <= cursor[0] < grid_size and 0 <= cursor[1] < grid_size:
+            if tuple(cursor) in snake:
                 raw_one_directional_vision.append('S')
                 if one_directional_vision[2] == None:
                     one_directional_vision[2] = distance
-            elif tuple(current) == red_apple:
+            elif tuple(cursor) == red_apple:
                 raw_one_directional_vision.append('R')
                 if one_directional_vision[1] == None:
                     one_directional_vision[1] = distance
-            elif tuple(current) in green_apples:
+            elif tuple(cursor) in green_apples:
                 raw_one_directional_vision.append('G')
                 if one_directional_vision[0] == None:
                     one_directional_vision[0] = distance
             else:
                 raw_one_directional_vision.append('0')
 
-            current[0] += direction[0]
-            current[1] += direction[1]
+            cursor[0] += direction[0]
+            cursor[1] += direction[1]
             distance += 1
 
         else:
@@ -54,5 +53,19 @@ def interpret(grid_size, last_happening, snake, green_apples, red_apple) -> tupl
 
     return REWARDS[last_happening], vision, raw_vision
 
+def print_snake_vision(grid_size, head, raw_vision) -> None:
+    output = [list(' ' * (grid_size + 2)) for _ in range(grid_size + 2)]
+    head = [value + 1 for value in head]
+    output[head[1]][head[0]] = 'H'
+    for line, direction in zip(raw_vision, [(-1,0),(0,-1),(1,0),(0,1)]):
+        cursor = list((head[1] + direction[1], head[0] + direction[0]))
+        for char in line:
+            output[cursor[0]][cursor[1]] = char
+            cursor[0] += direction[1]
+            cursor[1] += direction[0]
 
-print(interpret(10, LastHappening.NONE, [(4,4),(4,5)], [(2,2), (4,2)], (4,8)))
+    for row in output:
+        print(''.join(row))
+
+reward, vision, raw_vision = interpret(10, LastHappening.NONE, [(4,4),(4,5)], [(2,2), (4,2)], (4,8))
+print_snake_vision(10, (4,4), raw_vision)
