@@ -71,13 +71,15 @@ class Snake:
         head, neck = self.body[0], self.body[1]
         return (head[0] - neck[0], head[1] - neck[1])
 
-    def move(self):
+    def get_move_from_buffer(self):
         if self.input_buffer:
             # Process the first valid input in the buffer
             new_direction = self.input_buffer.pop(0)
-            if not self.is_opposite_direction(new_direction):
-                self.direction = new_direction
+        return new_direction
 
+    def move(self, new_direction):
+        if not self.is_opposite_direction(new_direction):
+            self.direction = new_direction
         head_x, head_y = self.body[0]
         new_head = (head_x + self.direction[0], head_y + self.direction[1])
         self.body.insert(0, new_head)
@@ -141,73 +143,79 @@ class SnakeGame:
         # Initialize apples
         self.green_apples = [Apple(type='green') for _ in range(2)]
         self.red_apple = Apple(type='red')
-
-        # Randomize initial apple positions
         self._reset_apples()
 
         self.last_happening = LastHappening.NONE
         self.game_over = False
 
     def reset_game(self):
-        # Reset snake
         self.snake.reset(self.grid_size, random_start=self.random_start)
-
-        # Reset apples
         self._reset_apples()
         self.game_over = False
 
+    def step(self, move_direction):
+        if not self.game_over:
+            raise ValueError("Game is over. Cannot take further action")
+        self._update_game_state(move_direction)
+
     def human_play(self, fps=5):
         if not self.render:
-            raise ValueError("Rendering must be enabled to play \
-the game manually.")
-
+            raise ValueError("Rendering must be enabled to play the game \
+manually.")
         self._draw()
         sleep(1)
         self.clock.tick(fps)
         running = True
         while running:
-            for event in pg.event.get():
-                if event.type == pg.QUIT:
-                    running = False
-                elif event.type == pg.KEYDOWN:
-                    if event.key == pg.K_ESCAPE:
-                        running = False
-                    elif event.key == pg.K_w:
-                        self.snake.add_direction_to_buffer((0, -1))
-                    elif event.key == pg.K_s:
-                        self.snake.add_direction_to_buffer((0, 1))
-                    elif event.key == pg.K_a:
-                        self.snake.add_direction_to_buffer((-1, 0))
-                    elif event.key == pg.K_d:
-                        self.snake.add_direction_to_buffer((1, 0))
-                    elif event.key == pg.K_SPACE and self.game_over:
-                        # Start a new game
-                        self.reset_game()
-                        # Clear the event queue to remove any lingering events
-                        pg.event.clear()
-                        self._draw()
-                        sleep(1)
-                        self.clock.tick(fps)
-                        break
-            else:
-                # Move snake
-                if not self.game_over:
-                    self.snake.move()
-
-                    if self._check_collisions():
-                        print("crashed and died")
-                        self.last_happening = LastHappening.DIED
-                        self.game_over = True
-
-                    self._draw()
-
-                    if self.game_over:
-                        self._draw_game_over()
-
-                self.clock.tick(fps)
-
+            self._handle_user_events()
+            if not self.game_over:
+                move_direction = self.snake.get_move_from_buffer()
+                self._update_game_state(move_direction)
+                self._draw()
+                if self.game_over:
+                    self._draw_game_over()
+            self.clock.tick(fps)
         pg.quit()
         sys.exit()
+
+    def _handle_user_events(self):
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                self._quit_game()
+            elif event.type == pg.KEYDOWN:
+                self._handle_keydown(event)
+
+    def _handle_keydown(self, event):
+        if event.key == pg.K_ESCAPE:
+            self._quit_game()
+        elif event.key == pg.K_w:
+            self.snake.add_direction_to_buffer((0, -1))
+        elif event.key == pg.K_s:
+            self.snake.add_direction_to_buffer((0, 1))
+        elif event.key == pg.K_a:
+            self.snake.add_direction_to_buffer((-1, 0))
+        elif event.key == pg.K_d:
+            self.snake.add_direction_to_buffer((1, 0))
+        elif event.key == pg.K_SPACE and self.game_over:
+            self._restart_game()
+
+    def _quit_game(self):
+        pg.quit()
+        sys.exit()
+
+    def _restart_game(self):
+        self.reset_game()
+        pg.event.clear()
+        self._draw()
+        sleep(1)
+        self.clock.tick(5)
+
+    def _update_game_state(self, move_direction):
+        self.snake.move(move_direction)
+        if self._check_collisions():
+            print("crashed and died")
+            self.last_happening = LastHappening.DIED
+            self.game_over = True
 
     def get_data(self):
         return self.grid_size, self.last_happening, self.snake.body, \
