@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class LastHappening(Enum):
     NONE = 0
     NO_COLLISION = 1
