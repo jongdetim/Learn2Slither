@@ -45,21 +45,30 @@ class Snake:
         possible_directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
         initial_direction = random.choice(possible_directions)
 
-        # Randomly choose a starting head position
-        max_x = self.grid_size - 3 if initial_direction[0] != 0 \
-            else self.grid_size - 1
-        max_y = self.grid_size - 3 if initial_direction[1] != 0 \
-            else self.grid_size - 1
+        min_x, max_x = 0, self.grid_size - 1
+        min_y, max_y = 0, self.grid_size - 1
+        if initial_direction == (1, 0):  # Right
+            min_x = 2
+            max_x = self.grid_size - 1
+        elif initial_direction == (-1, 0):  # Left
+            min_x = 0
+            max_x = self.grid_size - 3
+        elif initial_direction == (0, 1):  # Down
+            min_y = 2
+            max_y = self.grid_size - 1
+        else:  # Up
+            min_y = 0
+            max_y = self.grid_size - 3
 
-        start_x = random.randint(0, max_x)
-        start_y = random.randint(0, max_y)
+        start_x = random.randint(min_x, max_x)
+        start_y = random.randint(min_y, max_y)
 
         # Generate contiguous body segments
         body = [
             (start_x, start_y),
             (start_x - initial_direction[0], start_y - initial_direction[1]),
             (start_x - 2 * initial_direction[0], start_y - 2 *
-                initial_direction[1]),
+             initial_direction[1]),
         ]
         return body
 
@@ -125,6 +134,15 @@ class SnakeGame:
         self.random_start = random_start
         self.grid_size = grid_size
         self.render = render
+        self.snake = Snake(grid_size, random_start)
+
+        # Initialize apples
+        self.green_apples = [Apple(type='green') for _ in range(2)]
+        self.red_apple = Apple(type='red')
+        self._reset_apples()
+
+        self.last_happening = LastHappening.NONE
+        self.game_over = False
 
         if render:
             self.block_size = block_size
@@ -137,16 +155,8 @@ class SnakeGame:
             pg.display.set_caption("Snake")
             self.clock = pg.time.Clock()
             self.font = pg.font.Font(None, 69)
-
-        self.snake = Snake(grid_size, random_start)
-
-        # Initialize apples
-        self.green_apples = [Apple(type='green') for _ in range(2)]
-        self.red_apple = Apple(type='red')
-        self._reset_apples()
-
-        self.last_happening = LastHappening.NONE
-        self.game_over = False
+            self._draw()
+            sleep(1)
 
     def reset_game(self):
         self.snake.reset(self.grid_size, random_start=self.random_start)
@@ -154,16 +164,20 @@ class SnakeGame:
         self.game_over = False
 
     def step(self, move_direction):
-        if not self.game_over:
+        if self.game_over:
             raise ValueError("Game is over. Cannot take further action")
         self._update_game_state(move_direction)
+        if self.render:
+            self._draw()
+            if self.game_over:
+                self._draw_game_over()
 
     def human_play(self, fps=5):
         if not self.render:
             raise ValueError("Rendering must be enabled to play the game \
 manually.")
-        self._draw()
-        sleep(1)
+        # self._draw()
+        # sleep(1)
         self.clock.tick(fps)
         running = True
         while running:
@@ -213,7 +227,9 @@ manually.")
     def _update_game_state(self, move_direction):
         self.snake.move(move_direction)
         if self._check_collisions():
-            print("crashed and died")
+            # when the snake has crashed or became too small
+            print("died")
+            self.snake.shrink()
             self.last_happening = LastHappening.DIED
             self.game_over = True
 
