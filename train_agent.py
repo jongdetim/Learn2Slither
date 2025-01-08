@@ -4,6 +4,7 @@ from interpreter import interpret
 
 import time
 
+
 def main():
     # ai agent training
     game = SnakeGame(grid_size=10, random_start=True, render=True)

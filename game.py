@@ -32,7 +32,7 @@ class Snake:
         self.input_buffer = []  # Input buffer for directional input
         if random_start:
             self.body = self._generate_random_snake()
-            self.direction = self._initial_direction()
+            self.direction = self._get_direction()
         else:
             self.body = [(2, center), (1, center), (0, center)]
             self.direction = (1, 0)  # Initially moving right
@@ -72,7 +72,7 @@ class Snake:
         ]
         return body
 
-    def _initial_direction(self):
+    def _get_direction(self):
         """
         Determine the initial movement direction based on starting position.
         """
@@ -81,13 +81,15 @@ class Snake:
         return (head[0] - neck[0], head[1] - neck[1])
 
     def get_move_from_buffer(self):
+        new_direction = self.direction
         if self.input_buffer:
             # Process the first valid input in the buffer
             new_direction = self.input_buffer.pop(0)
         return new_direction
 
     def move(self, new_direction):
-        if not self.is_opposite_direction(new_direction):
+        if len(self.body) == 1 or \
+         not self.is_opposite_direction(new_direction):
             self.direction = new_direction
         head_x, head_y = self.body[0]
         new_head = (head_x + self.direction[0], head_y + self.direction[1])
