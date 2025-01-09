@@ -160,7 +160,7 @@ class SnakeGame:
             self._draw()
             sleep(1)
 
-    def reset_game(self):
+    def reset(self):
         self.snake.reset(self.grid_size, random_start=self.random_start)
         self._reset_apples()
         self.game_over = False
@@ -220,7 +220,7 @@ manually.")
         sys.exit()
 
     def _restart_game(self):
-        self.reset_game()
+        self.reset()
         pg.event.clear()
         self._draw()
         sleep(1)
@@ -237,7 +237,7 @@ manually.")
 
     def get_data(self):
         return self.grid_size, self.last_happening, self.snake.body, \
-                                    self.green_apples, self.red_apple
+                self.green_apples, self.red_apple, self.game_over
 
     def _draw(self):
         # Clear screen
