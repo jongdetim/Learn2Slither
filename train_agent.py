@@ -24,19 +24,19 @@ def train_agent(agent, environment, episodes, max_steps_per_episode):
         max_steps_per_episode (int): Maximum number of steps per episode.
     """
     for episode in range(episodes):
-        state = environment.reset()
+        state, _, possible_actions, _ = environment.reset()
         total_reward = 0
 
-        for step in range(max_steps_per_episode):
-            action = agent.act(state)  # Decide action based on current state
-            next_state, reward, done = environment.step(action)
+        for _ in range(max_steps_per_episode):
+            action = agent.act(state, possible_actions)  # Decide action based on current state
+            next_state, reward, possible_actions, done = environment.step(action)
             agent.store_experience(state, action, reward, next_state, done)
             state = next_state
             total_reward += reward
 
             if done:
                 break
-        
+
         # Train the agent at the end of the episode
         agent.train()
         print(f"Episode {episode + 1}/{episodes}, Total Reward: {total_reward}")

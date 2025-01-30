@@ -5,30 +5,43 @@ from constants import LastHappening
 # -----------------------------------------------------------------------
 
 
+# recursively converts a nested list to a nested tuple
+def convert_to_tuple(obj):
+    if isinstance(obj, list):
+        return tuple(convert_to_tuple(i) for i in obj)
+    return obj
+
+
 # wrapper for our SnakeGame class
 class SnakeEnvironment:
+    # all moves always available. possible improvement is to limit
+    # available moves to avoid going back or even to avoid hitting the wall
+    possible_actions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+
     def __init__(self, snake_game):
         self.game = snake_game
 
     def reset(self):  # Return initial state
         self.game.reset()
-        reward, vision, raw_vision = self.interpret(*self.game.get_data())
-        return vision
+        reward, vision, raw_vision, done = self.interpret(*self.game.get_data())
+        return convert_to_tuple(vision) if not done else "terminal", reward, self.possible_actions, done
 
     def step(self, action):
         self.game.step(action)  # Return next_state, reward, done
         reward, vision, raw_vision, done = self.interpret(*self.game.get_data())
-        return vision, reward, done
+        return convert_to_tuple(vision) if not done else "terminal", reward, self.possible_actions, done
 
     # def render(self):
     #     self.game.render()  # Optional for visualization
 
     # vision is encoded as distance to nearest green [G], distance to nearest
     # red [R], distance to nearest wall or body [S] * [left, up, right, down]
-    def interpret(grid_size, last_happening, snake, green_apples,
+    def interpret(self, grid_size, last_happening, snake, green_apples,
                   red_apple, done) -> tuple[int, list, list]:
         '''Interprets the SnakeGame state and last happening and returns the reward
         and snake vision, and the unprocessed vision for printing.'''
+        if done:
+            return LastHappening.reward(last_happening), [], [], done
         head = snake[0]
         vision = []
         raw_vision = []
