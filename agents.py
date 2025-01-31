@@ -75,6 +75,7 @@ class QLearningAgent:
             # Determine the list of possible actions for the next_state
             next_actions = list(self.q_table[next_state].keys()) if not done else []
             self.update(state, action, reward, next_state, next_actions)
+        print("agent learned from a batch of experiences")
 
     def get_q_value(self, state, action):
         """

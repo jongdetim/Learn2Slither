@@ -21,15 +21,41 @@ class SnakeEnvironment:
     def __init__(self, snake_game):
         self.game = snake_game
 
-    def reset(self):  # Return initial state
+    def reset(self):
         self.game.reset()
-        reward, vision, raw_vision, done = self.interpret(*self.game.get_data())
-        return convert_to_tuple(vision) if not done else "terminal", reward, self.possible_actions, done
+        return self.get_game_data()
 
     def step(self, action):
-        self.game.step(action)  # Return next_state, reward, done
-        reward, vision, raw_vision, done = self.interpret(*self.game.get_data())
-        return convert_to_tuple(vision) if not done else "terminal", reward, self.possible_actions, done
+        self.game.step(action)
+        return self.get_game_data()
+
+    def get_game_data(self): # converts vision to tuple and returns vision/state, reward, possible actions, done
+        reward, rich_vision, raw_vision, done = self.interpret(*self.game.get_data())
+        simple_vision = self.get_simple_vision(rich_vision)
+        print(simple_vision)
+        # self.print_snake_vision(self.game.grid_size, self.game.snake[0], raw_vision)
+        return convert_to_tuple(rich_vision) if not done else "terminal", reward, self.possible_actions, done
+
+    def get_simple_vision(self, rich_vision):
+        '''
+        Converts rich_vision to simple_vision.
+        rich_vision: list of lists of distances to nearest green, red, and wall/snake (length 12)
+        simple_vision: tuple of nearest object type in each direction (length 4)
+        '''
+        simple_vision = []
+        # return the lowest value and it's index of each direction in rich_vision
+        nearest_objects = [min((value, type) for type, value
+                           in enumerate(direction) if value is not None)
+                           for direction in rich_vision]
+        # 0: green, 1: red, 2: wall/snake
+        moves = "GRS"
+        for direction in nearest_objects:
+            simple_vision.append("C" if direction[0] == 1 and moves[direction[1]] == "S" else moves[direction[1]])
+        
+        simple_vision = tuple(simple_vision)
+        print(rich_vision)
+        print(simple_vision)
+
 
     # def render(self):
     #     self.game.render()  # Optional for visualization
@@ -43,12 +69,12 @@ class SnakeEnvironment:
         if done:
             return LastHappening.reward(last_happening), [], [], done
         head = snake[0]
-        vision = []
+        rich_vision = []
         raw_vision = []
         for direction in [
                 (-1, 0), (0, -1), (1, 0), (0, 1)]:  # left, up, right, down
             raw_one_directional_vision = []  # for printing stdout printing
-            one_directional_vision = [None, None, None]  # green, red, wall/snake
+            rich_one_directional_vision = [None, None, None]  # green, red, wall/snake
             cursor = list(head)
             cursor[0] += direction[0]
             cursor[1] += direction[1]
@@ -56,16 +82,16 @@ class SnakeEnvironment:
             while 0 <= cursor[0] < grid_size and 0 <= cursor[1] < grid_size:
                 if tuple(cursor) in snake:
                     raw_one_directional_vision.append('S')
-                    if one_directional_vision[2] is None:
-                        one_directional_vision[2] = distance
-                elif tuple(cursor) == red_apple:
+                    if rich_one_directional_vision[2] is None:
+                        rich_one_directional_vision[2] = distance
+                elif tuple(cursor) == red_apple.position:
                     raw_one_directional_vision.append('R')
-                    if one_directional_vision[1] is None:
-                        one_directional_vision[1] = distance
-                elif tuple(cursor) in green_apples:
+                    if rich_one_directional_vision[1] is None:
+                        rich_one_directional_vision[1] = distance
+                elif tuple(cursor) in [green_apple.position for green_apple in green_apples]:
                     raw_one_directional_vision.append('G')
-                    if one_directional_vision[0] is None:
-                        one_directional_vision[0] = distance
+                    if rich_one_directional_vision[0] is None:
+                        rich_one_directional_vision[0] = distance
                 else:
                     raw_one_directional_vision.append('0')
 
@@ -74,13 +100,13 @@ class SnakeEnvironment:
                 distance += 1
 
             raw_one_directional_vision.append('W')
-            if one_directional_vision[2] is None:
-                one_directional_vision[2] = distance
+            if rich_one_directional_vision[2] is None:
+                rich_one_directional_vision[2] = distance
 
             raw_vision.append(raw_one_directional_vision)
-            vision.append(one_directional_vision)
+            rich_vision.append(rich_one_directional_vision)
 
-        return LastHappening.reward(last_happening), vision, raw_vision, done
+        return LastHappening.reward(last_happening), rich_vision, raw_vision, done
 
     def print_snake_vision(grid_size, head, raw_vision) -> None:
         output = [list(' ' * (grid_size + 2)) for _ in range(grid_size + 2)]
