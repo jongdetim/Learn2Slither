@@ -230,7 +230,7 @@ manually.")
         self.snake.move(move_direction)
         if self._check_collisions():
             # when the snake has crashed or became too small
-            print("died")
+            # print("died")
             self.snake.shrink()
             self.last_happening = LastHappening.DIED
             self.game_over = True
@@ -320,7 +320,7 @@ manually.")
 
         for apple in self.green_apples:
             if head == apple.position:
-                print("Green apple eaten")
+                # print("Green apple eaten")
                 # self.snake.grow()
                 apple.relocate(self.grid_size, occupied_positions)
                 self.last_happening = LastHappening.GREEN_APPLE_EATEN
@@ -329,7 +329,7 @@ manually.")
         if head == self.red_apple.position:
             self.red_apple.relocate(self.grid_size, occupied_positions)
 
-            print("Red apple eaten")
+            # print("Red apple eaten")
             self.snake.shrink()
             if len(self.snake.body) > 1:
                 self.snake.shrink()
@@ -338,7 +338,7 @@ manually.")
             else:
                 return True
 
-        print("No collision")
+        # print("No collision")
         self.snake.shrink()
         self.last_happening = LastHappening.NO_COLLISION
         return False

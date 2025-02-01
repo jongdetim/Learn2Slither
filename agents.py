@@ -1,9 +1,24 @@
 import random
 from collections import defaultdict, deque
+from abc import ABC, abstractmethod
 
 
-class QLearningAgent:
-    def __init__(self, alpha=0.1, gamma=0.99, epsilon=0.1, buffer_size=1000, batch_size=32):
+class Agent(ABC):
+    @abstractmethod
+    def act(self, state, actions):
+        pass
+
+    @abstractmethod
+    def update(self, state, action, reward, next_state, next_actions):
+        pass
+
+    @abstractmethod
+    def train(self, env, episodes):
+        pass
+
+
+class QLearningAgent(Agent):
+    def __init__(self, alpha=0.1, gamma=0.99, epsilon=0.5, epsilon_decay=0.995, minimum_epsilon=0.01, buffer_size=1000, batch_size=32):
         """
         Initialize the Q-learning agent using defaultdict.
         Args:
@@ -16,6 +31,8 @@ class QLearningAgent:
         self.alpha = alpha
         self.gamma = gamma
         self.epsilon = epsilon
+        self.epsilon_decay = epsilon_decay
+        self.minimum_epsilon = minimum_epsilon
         self.q_table = defaultdict(lambda: defaultdict(float))  # Default Q-values to 0.0
         
         # Replay buffer
@@ -31,7 +48,7 @@ class QLearningAgent:
         Returns:
             Action: Chosen action.
         """
-        if random.uniform(0, 1) < self.epsilon:
+        if random.uniform(0, 1) < max(self.minimum_epsilon, self.epsilon):
             return random.choice(actions)  # Explore
         return max(actions, key=lambda action: self.q_table[state][action])  # Exploit
 
@@ -75,7 +92,9 @@ class QLearningAgent:
             # Determine the list of possible actions for the next_state
             next_actions = list(self.q_table[next_state].keys()) if not done else []
             self.update(state, action, reward, next_state, next_actions)
+        self.epsilon *= self.epsilon_decay
         print("agent learned from a batch of experiences")
+        print("epsilon:", max(self.minimum_epsilon, self.epsilon))
 
     def get_q_value(self, state, action):
         """

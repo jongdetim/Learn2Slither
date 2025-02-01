@@ -32,9 +32,10 @@ class SnakeEnvironment:
     def get_game_data(self): # converts vision to tuple and returns vision/state, reward, possible actions, done
         reward, rich_vision, raw_vision, done = self.interpret(*self.game.get_data())
         simple_vision = self.get_simple_vision(rich_vision)
-        print(simple_vision)
+        # print(simple_vision)
         # self.print_snake_vision(self.game.grid_size, self.game.snake[0], raw_vision)
-        return convert_to_tuple(rich_vision) if not done else "terminal", reward, self.possible_actions, done
+        # return convert_to_tuple(rich_vision) if not done else "terminal", reward, self.possible_actions, done
+        return simple_vision if not done else "terminal", reward, self.possible_actions, done
 
     def get_simple_vision(self, rich_vision):
         '''
@@ -43,7 +44,6 @@ class SnakeEnvironment:
         simple_vision: tuple of nearest object type in each direction (length 4)
         '''
         simple_vision = []
-        # return the lowest value and it's index of each direction in rich_vision
         nearest_objects = [min((value, type) for type, value
                            in enumerate(direction) if value is not None)
                            for direction in rich_vision]
@@ -53,8 +53,9 @@ class SnakeEnvironment:
             simple_vision.append("C" if direction[0] == 1 and moves[direction[1]] == "S" else moves[direction[1]])
         
         simple_vision = tuple(simple_vision)
-        print(rich_vision)
-        print(simple_vision)
+        # print(rich_vision)
+        # print(simple_vision)
+        return simple_vision
 
 
     # def render(self):

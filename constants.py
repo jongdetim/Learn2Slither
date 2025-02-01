@@ -12,8 +12,8 @@ class LastHappening(Enum):
         rewards = {
             LastHappening.NONE: 0,
             LastHappening.NO_COLLISION: -1,
-            LastHappening.GREEN_APPLE_EATEN: 10,
-            LastHappening.RED_APPLE_EATEN: -10,
+            LastHappening.GREEN_APPLE_EATEN: 50,
+            LastHappening.RED_APPLE_EATEN: -50,
             LastHappening.DIED: -1000,
         }
         return rewards[self]

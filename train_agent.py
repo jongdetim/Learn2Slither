@@ -25,7 +25,8 @@ def train_agent(agent, environment, episodes, max_steps_per_episode):
     """
     for episode in range(episodes):
         state, _, possible_actions, _ = environment.reset()
-        total_reward = 0
+        # start at 1000 to offset death penalty
+        total_reward = 1000
 
         for _ in range(max_steps_per_episode):
             action = agent.act(state, possible_actions)  # Decide action based on current state
@@ -45,10 +46,10 @@ def train_agent(agent, environment, episodes, max_steps_per_episode):
 if __name__ == "__main__":
     game = SnakeGame(render=False)
     environment = SnakeEnvironment(game)
-    agent = QLearningAgent(alpha=0.1, gamma=0.99, epsilon=0.1)
+    agent = QLearningAgent(alpha=0.1, gamma=0.99, epsilon_decay=0.995, epsilon=0.9, buffer_size=1000, batch_size=32)
     train_agent(agent, environment, episodes=1000, max_steps_per_episode=1000)
 
     # Display part of the learned Q-table
     print("Sample Q-values:")
-    for state, actions in list(agent.get_q_table().items())[:5]:  # Display the first 5 states
+    for state, actions in list(agent.get_q_table().items())[:20]:  # Display the first 5 states
         print(f"State: {state}, Actions: {dict(actions)}")
