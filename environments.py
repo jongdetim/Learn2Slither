@@ -57,7 +57,6 @@ class SnakeEnvironment:
         # print(simple_vision)
         return simple_vision
 
-
     # def render(self):
     #     self.game.render()  # Optional for visualization
 
