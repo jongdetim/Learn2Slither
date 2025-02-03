@@ -291,6 +291,9 @@ manually.")
         if not self.game_over:
             pg.display.flip()
 
+        # this is needed to not have the OS freeze the window when rendering is True
+        pg.event.pump()
+
     def _draw_game_over(self):
         # Display "Game Over" message in the center
         text = self.font.render("GAME OVER", True, (255, 200, 0))
@@ -333,6 +336,7 @@ manually.")
             self.snake.shrink()
             if len(self.snake.body) > 1:
                 self.snake.shrink()
+                self.red_apple.relocate(self.grid_size, set(self.snake.body + [apple.position for apple in self.green_apples] + [self.red_apple.position]))
                 self.last_happening = LastHappening.RED_APPLE_EATEN
                 return False
             else:

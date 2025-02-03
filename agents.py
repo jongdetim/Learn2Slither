@@ -18,7 +18,7 @@ class Agent(ABC):
 
 
 class QLearningAgent(Agent):
-    def __init__(self, alpha=0.1, gamma=0.99, epsilon=0.5, epsilon_decay=0.995, minimum_epsilon=0.01, buffer_size=1000, batch_size=32):
+    def __init__(self, alpha=0.1, gamma=0.99, epsilon=0.5, epsilon_decay=0.995, minimum_epsilon=0.001, buffer_size=1000, batch_size=32):
         """
         Initialize the Q-learning agent using defaultdict.
         Args:
