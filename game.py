@@ -145,20 +145,28 @@ class SnakeGame:
 
         self.last_happening = LastHappening.NONE
         self.game_over = False
+        self.block_size = block_size
+        self.margin = margin
+        # Make the window larger than the grid
+        self.screen_size = (grid_size * block_size) + 2 * margin
 
-        if render:
-            self.block_size = block_size
-            self.margin = margin
-            # Make the window larger than the grid
-            self.screen_size = (grid_size * block_size) + 2 * margin
-            pg.init()
-            self.screen = pg.display.set_mode((self.screen_size,
-                                               self.screen_size))
-            pg.display.set_caption("Snake")
-            self.clock = pg.time.Clock()
-            self.font = pg.font.Font(None, 69)
-            self._draw()
-            sleep(1)
+        if self.render:
+            self._init_pygame_window()
+
+    def _init_pygame_window(self):
+        pg.init()
+        self.screen = pg.display.set_mode((self.screen_size,
+                                            self.screen_size))
+        pg.display.set_caption("Snake")
+        self.clock = pg.time.Clock()
+        self.font = pg.font.Font(None, 69)
+        self._draw()
+        sleep(1)
+
+    def init_rendering(self):
+        if not self.render:
+            self._init_pygame_window()
+        self.render = True
 
     def reset(self):
         self.snake.reset(self.grid_size, random_start=self.random_start)

@@ -62,8 +62,8 @@ def play_game(agent, environment, max_steps_per_episode, delay=0.2):
 if __name__ == "__main__":
     game = SnakeGame(render=False)
     environment = SnakeEnvironment(game)
-    agent = QLearningAgent(alpha=0.1, gamma=0.99, epsilon_decay=0.999, epsilon=0.9, buffer_size=1000, batch_size=32)
-    train_agent(agent, environment, episodes=10000, max_steps_per_episode=1000)
+    agent = QLearningAgent(alpha=0.1, gamma=0.99, epsilon_decay=0.995, epsilon=0.9, buffer_size=1000, batch_size=32)
+    train_agent(agent, environment, episodes=1000, max_steps_per_episode=1000)
 
     # Display part of the learned Q-table
     print("Sample Q-values:")
@@ -71,8 +71,7 @@ if __name__ == "__main__":
         print(f"State: {state}, Actions: {dict(actions)}")
 
     # play a game with the model
-    game = SnakeGame(render=True)
-    environment = SnakeEnvironment(game)
+    game.init_rendering()
     play_game(agent, environment, max_steps_per_episode=1000)
 
     # save model
