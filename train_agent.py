@@ -44,7 +44,7 @@ def play_game(agent, environment, max_steps_per_episode, delay=0.2):
         max_steps_per_episode (int): Maximum number of steps per episode.
     """
     state, _, possible_actions, _ = environment.reset()
-    total_reward = 1000
+    total_reward = 0
 
     for _ in range(max_steps_per_episode):
         action = agent.act(state, possible_actions)  # Decide action based on current state
@@ -70,8 +70,12 @@ if __name__ == "__main__":
     for state, actions in list(agent.get_q_table().items())[:20]:  # Display the first 5 states
         print(f"State: {state}, Actions: {dict(actions)}")
 
+    # save model
+    agent.save("snake_q_learning_agent.pkl")
+
+    # load model
+    agent.load("snake_q_learning_agent.pkl")
+
     # play a game with the model
     game.init_rendering()
     play_game(agent, environment, max_steps_per_episode=1000)
-
-    # save model

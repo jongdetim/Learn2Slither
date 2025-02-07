@@ -1,6 +1,7 @@
 import random
 from collections import defaultdict, deque
 from abc import ABC, abstractmethod
+import pickle
 
 
 class Agent(ABC):
@@ -114,3 +115,21 @@ class QLearningAgent(Agent):
             defaultdict: The nested Q-table.
         """
         return self.q_table
+
+    def save(self, filename):
+        """
+        Save the Q-table to a file.
+        Args:
+            filename (str): The name of the file to save the Q-table.
+        """
+        with open(filename, 'wb') as f:
+            pickle.dump(dict(self.q_table), f)
+
+    def load(self, filename):
+        """
+        Load the Q-table from a file.
+        Args:
+            filename (str): The name of the file to load the Q-table.
+        """
+        with open(filename, 'rb') as f:
+            self.q_table = defaultdict(lambda: defaultdict(float), pickle.load(f))
