@@ -19,7 +19,7 @@ class Agent(ABC):
 
 
 class QLearningAgent(Agent):
-    def __init__(self, alpha=0.1, gamma=0.99, epsilon=0.5, epsilon_decay=0.995, minimum_epsilon=0.001, buffer_size=1000, batch_size=32):
+    def __init__(self, alpha=0.1, gamma=0.99, epsilon=0.5, epsilon_decay=0.995, minimum_epsilon=0.01, buffer_size=1000, batch_size=32):
         """
         Initialize the Q-learning agent using defaultdict.
         Args:
@@ -40,7 +40,7 @@ class QLearningAgent(Agent):
         self.buffer = deque(maxlen=buffer_size)
         self.batch_size = batch_size
 
-    def act(self, state, actions):
+    def act(self, state, actions, ignore_exploration=False):
         """
         Choose an action based on epsilon-greedy policy.
         Args:
@@ -49,7 +49,7 @@ class QLearningAgent(Agent):
         Returns:
             Action: Chosen action.
         """
-        if random.uniform(0, 1) < max(self.minimum_epsilon, self.epsilon):
+        if not ignore_exploration and random.uniform(0, 1) < max(self.minimum_epsilon, self.epsilon):
             return random.choice(actions)  # Explore
         return max(actions, key=lambda action: self.q_table[state][action])  # Exploit
 

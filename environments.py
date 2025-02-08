@@ -48,9 +48,9 @@ class SnakeEnvironment:
                            in enumerate(direction) if value is not None)
                            for direction in rich_vision]
         # 0: green, 1: red, 2: wall/snake
-        moves = "GRS"
+        moves = "GRWS"
         for direction in nearest_objects:
-            simple_vision.append("C" if direction[0] == 1 and moves[direction[1]] == "S" else moves[direction[1]])
+            simple_vision.append("C" if direction[0] == 1 and moves[direction[1]] == "W" else moves[direction[1]])
         
         simple_vision = tuple(simple_vision)
         # print(rich_vision)
@@ -74,7 +74,7 @@ class SnakeEnvironment:
         for direction in [
                 (-1, 0), (0, -1), (1, 0), (0, 1)]:  # left, up, right, down
             raw_one_directional_vision = []  # for printing stdout printing
-            rich_one_directional_vision = [None, None, None]  # green, red, wall/snake
+            rich_one_directional_vision = [None, None, None, None]  # green, red, wall, snake
             cursor = list(head)
             cursor[0] += direction[0]
             cursor[1] += direction[1]
@@ -82,8 +82,8 @@ class SnakeEnvironment:
             while 0 <= cursor[0] < grid_size and 0 <= cursor[1] < grid_size:
                 if tuple(cursor) in snake:
                     raw_one_directional_vision.append('S')
-                    if rich_one_directional_vision[2] is None:
-                        rich_one_directional_vision[2] = distance
+                    if rich_one_directional_vision[3] is None:
+                        rich_one_directional_vision[3] = distance
                 elif tuple(cursor) == red_apple.position:
                     raw_one_directional_vision.append('R')
                     if rich_one_directional_vision[1] is None:
