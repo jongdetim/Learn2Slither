@@ -17,3 +17,22 @@ class LastHappening(Enum):
             LastHappening.DIED: -1000,
         }
         return rewards[self]
+
+class Directions(Enum):
+    LEFT = (-1, 0)
+    UP = (0, -1)
+    RIGHT = (1, 0)
+    DOWN = (0, 1)
+
+    @classmethod
+    def from_tuple(cls, direction_tuple):
+        for direction in cls:
+            if direction.value == direction_tuple:
+                return direction.name
+        raise ValueError(f"Invalid direction tuple: {direction_tuple}")
+
+# Example usage
+# print(Direction.from_tuple((1, 0)))  # Output: RIGHT
+# print(Direction.from_tuple((-1, 0)))  # Output: LEFT
+# print(Direction.from_tuple((0, 1)))  # Output: DOWN
+# print(Direction.from_tuple((0, -1)))  # Output: UP

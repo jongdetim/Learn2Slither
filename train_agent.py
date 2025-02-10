@@ -76,11 +76,13 @@ def benchmark_agent(agent, environment, games, max_steps_per_episode):
     """
     total_steps = 0
     total_snake_length = 0
+    max_snake_length = 0
 
     for game in range(games):
         total_reward, step_count, snake_length = play_game(agent, environment, max_steps_per_episode, delay=0)
         total_steps += step_count
         total_snake_length += snake_length
+        max_snake_length = max(max_snake_length, snake_length)
         # print(f"Game {game + 1}/{games}, Steps: {step_count}, Snake Length: {snake_length}")
 
     average_steps = total_steps / games
@@ -88,26 +90,31 @@ def benchmark_agent(agent, environment, games, max_steps_per_episode):
 
     print(f"Average Steps: {average_steps}")
     print(f"Average Snake Length: {average_snake_length}")
+    print(f"Max Snake Length: {max_snake_length}")
 
 
 if __name__ == "__main__":
     game = SnakeGame(render=False)
     environment = SnakeEnvironment(game)
-    agent = QLearningAgent(alpha=0.1, gamma=0.99, epsilon_decay=0.999, epsilon=0.9, buffer_size=1000, batch_size=32)
-    train_agent(agent, environment, episodes=5000, max_steps_per_episode=1000)
+    agent = QLearningAgent(alpha=0.05, gamma=0.7, epsilon_decay=0.999, epsilon=0.9, buffer_size=500, batch_size=32)
+    train_agent(agent, environment, episodes=10000, max_steps_per_episode=1000)
 
-    # Display part of the learned Q-table
-    print("Sample Q-values:")
-    for state, actions in list(agent.get_q_table().items())[:20]:  # Display the first 20 states
-        print(f"State: {state}, Actions: {dict(actions)}")
+    # # Display part of the learned Q-table
+    # print("Sample Q-values:")
+    # for state, actions in list(agent.get_q_table().items())[:20]:  # Display the first 20 states
+    #     print(f"State: {state}, Actions: {dict(actions)}")
 
-    # save model
+    # # save model
     agent.save("snake_q_learning_agent.pkl")
 
     # load model
     agent.load("snake_q_learning_agent.pkl")
+    # agent.load("minimal_inputs_5k_model.pkl")
+
+    for state, actions in list(agent.get_q_table().items())[:20]:  # Display the first 20 states
+        print(f"State: {state}, Actions: {dict(actions)}")
 
     # play a game with the model
     # game.init_rendering()
-    benchmark_agent(agent, environment, 1000, max_steps_per_episode=1000)
+    benchmark_agent(agent, environment, 1, max_steps_per_episode=1000)
     # play_game(agent, environment, max_steps_per_episode=1000)

@@ -3,7 +3,7 @@ import random
 import sys
 from time import sleep
 
-from constants import LastHappening
+from constants import LastHappening, Directions
 
 
 class Apple:
@@ -35,25 +35,23 @@ class Snake:
             self.direction = self._get_direction()
         else:
             self.body = [(2, center), (1, center), (0, center)]
-            self.direction = (1, 0)  # Initially moving right
+            self.direction = Directions.from_tuple(1, 0)  # Initially moving right
 
     def _generate_random_snake(self):
         """
         Generate a random contiguous starting position for snake of length 3.
         """
-        # Randomly choose an initial direction
-        possible_directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
-        initial_direction = random.choice(possible_directions)
+        initial_direction = random.choice(list(Directions))
 
         min_x, max_x = 0, self.grid_size - 1
         min_y, max_y = 0, self.grid_size - 1
-        if initial_direction == (1, 0):  # Right
+        if initial_direction == Directions.RIGHT:
             min_x = 2
             max_x = self.grid_size - 1
-        elif initial_direction == (-1, 0):  # Left
+        elif initial_direction == Directions.LEFT:
             min_x = 0
             max_x = self.grid_size - 3
-        elif initial_direction == (0, 1):  # Down
+        elif initial_direction == Directions.DOWN:
             min_y = 2
             max_y = self.grid_size - 1
         else:  # Up
@@ -66,9 +64,9 @@ class Snake:
         # Generate contiguous body segments
         body = [
             (start_x, start_y),
-            (start_x - initial_direction[0], start_y - initial_direction[1]),
-            (start_x - 2 * initial_direction[0], start_y - 2 *
-             initial_direction[1]),
+            (start_x - initial_direction.value[0], start_y - initial_direction.value[1]),
+            (start_x - 2 * initial_direction.value[0], start_y - 2 *
+             initial_direction.value[1]),
         ]
         return body
 
@@ -78,7 +76,7 @@ class Snake:
         """
         # The direction is determined by the order of body segments
         head, neck = self.body[0], self.body[1]
-        return (head[0] - neck[0], head[1] - neck[1])
+        return Directions.from_tuple((head[0] - neck[0], head[1] - neck[1]))
 
     def get_move_from_buffer(self):
         new_direction = self.direction
@@ -92,7 +90,7 @@ class Snake:
          not self.is_opposite_direction(new_direction):
             self.direction = new_direction
         head_x, head_y = self.body[0]
-        new_head = (head_x + self.direction[0], head_y + self.direction[1])
+        new_head = (head_x + self.direction.value[0], head_y + self.direction.value[1])
         self.body.insert(0, new_head)
         # self.body.pop()
 
@@ -112,10 +110,10 @@ class Snake:
 
     def is_opposite_direction(self, new_direction):
         opposite_directions = {
-            (1, 0): (-1, 0),   # Right vs Left
-            (-1, 0): (1, 0),   # Left vs Right
-            (0, 1): (0, -1),   # Down vs Up
-            (0, -1): (0, 1)    # Up vs Down
+            Directions.RIGHT: Directions.LEFT,
+            Directions.LEFT: Directions.RIGHT,
+            Directions.UP: Directions.DOWN,
+            Directions.DOWN: Directions.UP
         }
         return new_direction == opposite_directions.get(self.direction)
 
@@ -213,13 +211,13 @@ manually.")
         if event.key == pg.K_ESCAPE:
             self._quit_game()
         elif event.key == pg.K_w:
-            self.snake.add_direction_to_buffer((0, -1))
+            self.snake.add_direction_to_buffer(Directions.UP)
         elif event.key == pg.K_s:
-            self.snake.add_direction_to_buffer((0, 1))
+            self.snake.add_direction_to_buffer(Directions.DOWN)
         elif event.key == pg.K_a:
-            self.snake.add_direction_to_buffer((-1, 0))
+            self.snake.add_direction_to_buffer(Directions.LEFT)
         elif event.key == pg.K_d:
-            self.snake.add_direction_to_buffer((1, 0))
+            self.snake.add_direction_to_buffer(Directions.RIGHT)
         elif event.key == pg.K_SPACE and self.game_over:
             self._restart_game()
 
