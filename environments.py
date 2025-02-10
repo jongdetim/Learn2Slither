@@ -6,9 +6,9 @@ from constants import LastHappening, Directions
 
 
 # recursively converts a nested list to a nested tuple
-def convert_to_tuple(obj):
+def convert_nested_list_to_tuple(obj):
     if isinstance(obj, list):
-        return tuple(convert_to_tuple(i) for i in obj)
+        return tuple(convert_nested_list_to_tuple(i) for i in obj)
     return obj
 
 
@@ -26,17 +26,17 @@ class SnakeEnvironment:
         return self.get_game_data()
 
     def step(self, action):
-        print(action.name)
+        # print(action.name)
         self.game.step(action)
         return self.get_game_data()
 
     def get_game_data(self): # converts vision to tuple and returns vision/state, reward, possible actions, done
         reward, rich_vision, raw_vision, done, snake_length = self.interpret(*self.game.get_data())
         simple_vision = self.get_simple_vision(rich_vision)
-        if not done:
-            print(simple_vision)
-            self.print_raw_snake_vision(self.game.grid_size, self.game.snake.body[0], raw_vision)
-        # return convert_to_tuple(rich_vision) if not done else "terminal", reward, self.possible_actions, done
+        # if not done:
+        #     print(simple_vision)
+        #     self.print_raw_snake_vision(self.game.grid_size, self.game.snake.body[0], raw_vision)
+        # return convert_nested_list_to_tuple(rich_vision) if not done else "terminal", reward, self.possible_actions, done
         return (simple_vision if not done else "terminal"), reward, self.possible_actions, done, snake_length
 
     def get_simple_vision(self, rich_vision):
@@ -49,7 +49,7 @@ class SnakeEnvironment:
         nearest_objects = [min((value, type) for type, value
                            in enumerate(direction) if value is not None)
                            for direction in rich_vision]
-        # 0: green, 1: red, 2: wall/snake
+        # 0: green, 1: red, 2: wall, 3: snake
         moves = "GRWS"
         for direction in nearest_objects:
             simple_vision.append("C" if direction[0] == 1 and moves[direction[1]] == "W" else moves[direction[1]])
@@ -58,6 +58,14 @@ class SnakeEnvironment:
         # print(rich_vision)
         # print(simple_vision)
         return simple_vision
+
+    def get_simplest_vision(self, simple_vision):
+        '''
+        removes S/W distinction from simple_vision
+        '''
+        simplest_vision = ["W" if obj == "S" else obj for obj in simple_vision]
+
+        return tuple(simplest_vision)
 
     # def render(self):
     #     self.game.render()  # Optional for visualization

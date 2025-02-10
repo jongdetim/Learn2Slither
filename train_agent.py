@@ -116,5 +116,5 @@ if __name__ == "__main__":
 
     # play a game with the model
     # game.init_rendering()
-    benchmark_agent(agent, environment, 1, max_steps_per_episode=1000)
+    benchmark_agent(agent, environment, 1000, max_steps_per_episode=1000)
     # play_game(agent, environment, max_steps_per_episode=1000)

@@ -35,7 +35,7 @@ class Snake:
             self.direction = self._get_direction()
         else:
             self.body = [(2, center), (1, center), (0, center)]
-            self.direction = Directions.from_tuple(1, 0)  # Initially moving right
+            self.direction = Directions.RIGHT  # Initially moving right
 
     def _generate_random_snake(self):
         """
