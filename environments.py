@@ -52,7 +52,7 @@ class SnakeEnvironment:
         # 0: green, 1: red, 2: wall, 3: snake
         moves = "GRWS"
         for direction in nearest_objects:
-            simple_vision.append("C" if direction[0] == 1 and moves[direction[1]] == "W" else moves[direction[1]])
+            simple_vision.append("C" if direction[0] == 1 and (moves[direction[1]] == "W" or moves[direction[1]] == "S" else moves[direction[1]])
         
         simple_vision = tuple(simple_vision)
         # print(rich_vision)
