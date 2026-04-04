@@ -33,15 +33,17 @@ class SnakeEnvironment:
     def get_game_data(self): # converts vision to tuple and returns vision/state, reward, possible actions, done
         reward, rich_vision, raw_vision, done, snake_length = self.interpret(*self.game.get_data())
         simple_vision = self.get_simple_vision(rich_vision)
+        simplest_vision = self.get_simplest_vision(simple_vision)
         # if not done:
         #     print(simple_vision)
         #     self.print_raw_snake_vision(self.game.grid_size, self.game.snake.body[0], raw_vision)
         # return convert_nested_list_to_tuple(rich_vision) if not done else "terminal", reward, self.possible_actions, done
+        # return (simplest_vision if not done else "terminal"), reward, self.possible_actions, done, snake_length
         return (simple_vision if not done else "terminal"), reward, self.possible_actions, done, snake_length
 
     def get_simple_vision(self, rich_vision):
         '''
-        Converts rich_vision to simple_vision, which is just S/W, R, G, C (for immediate S/W collision / distance of 1)
+        Converts rich_vision to simple_vision, which is just S, W, R, G, C (for immediate S/W collision / distance of 1)
         rich_vision: list of lists of distances to nearest green, red, and wall/snake (length 12)
         simple_vision: tuple of nearest object type in each direction (length 4)
         '''
