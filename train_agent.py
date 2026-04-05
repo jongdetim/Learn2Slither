@@ -96,8 +96,8 @@ def benchmark_agent(agent, environment, games, max_steps_per_episode):
 if __name__ == "__main__":
     game = SnakeGame(render=False)
     environment = SnakeEnvironment(game)
-    agent = QLearningAgent(alpha=0.1, gamma=0.95, epsilon_decay=0.9995, epsilon=0.9, buffer_size=10000, batch_size=512)
-    # train_agent(agent, environment, episodes=10000, max_steps_per_episode=1000)
+    agent = QLearningAgent(alpha=0.1, gamma=0.95, epsilon_decay=0.9999, epsilon=0.9, buffer_size=10000, batch_size=512)
+    train_agent(agent, environment, episodes=10000, max_steps_per_episode=1000)
 
     # # Display part of the learned Q-table
     # print("Sample Q-values:")
@@ -105,16 +105,16 @@ if __name__ == "__main__":
     #     print(f"State: {state}, Actions: {dict(actions)}")
 
     # # save model
-    # agent.save("snake_q_learning_agent.pkl")
+    agent.save("snake_q_learning_agent.pkl")
 
     # load model
-    agent.load("snake_q_learning_agent.pkl")
+    # agent.load("snake_q_learning_agent.pkl")
     # agent.load("minimal_inputs_5k_model.pkl")
 
     # for state, actions in list(agent.get_q_table().items())[:20]:  # Display the first 20 states
     #     print(f"State: {state}, Actions: {dict(actions)}")
 
-    # benchmark_agent(agent, environment, 100, max_steps_per_episode=1000)
+    benchmark_agent(agent, environment, 100, max_steps_per_episode=1000)
     # play a game with the model
-    game.init_rendering()
-    play_game(agent, environment, max_steps_per_episode=1000)
+    # game.init_rendering()
+    # play_game(agent, environment, max_steps_per_episode=1000)

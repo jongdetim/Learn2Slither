@@ -356,7 +356,6 @@ manually.")
         return False
 
     def _check_wall_and_body_collision(self, head):
-        # Check for wall and body collisions
         # Returns True if collision, False otherwise
 
         # Wall collision
