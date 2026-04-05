@@ -92,11 +92,6 @@ class Snake:
         head_x, head_y = self.body[0]
         new_head = (head_x + self.direction.value[0], head_y + self.direction.value[1])
         self.body.insert(0, new_head)
-        # self.body.pop()
-
-    def grow(self):
-        tail = self.body[-1]
-        self.body.append(tail)
 
     def shrink(self):
         if len(self.body) > 0:
@@ -158,8 +153,8 @@ class SnakeGame:
         pg.display.set_caption("Snake")
         self.clock = pg.time.Clock()
         self.font = pg.font.Font(None, 69)
-        self._draw()
-        sleep(1)
+        # self._draw()
+        # sleep(1)
 
     def init_rendering(self):
         if not self.render:
@@ -234,10 +229,9 @@ manually.")
 
     def _update_game_state(self, move_direction):
         self.snake.move(move_direction)
-        if self._check_collisions():
+        if self._check_interactions():
             # when the snake has crashed or became too small
             # print("died")
-            self.snake.shrink()
             self.last_happening = LastHappening.DIED
             self.game_over = True
 
@@ -308,9 +302,62 @@ manually.")
         self.screen.blit(text, text_rect)
         pg.display.flip()
 
-    def _check_collisions(self):
+    def _check_interactions(self):
         # returns True if the snake dies, False otherwise
         head = self.snake.body[0]
+
+        # Check green apples first (before popping tail)
+        if self._eat_green_apple(head):
+            return False
+
+        # Pop the tail before checking red apples and collisions
+        self.snake.shrink()
+
+        # Check red apples
+        if self._eat_red_apple(head):
+            # Red apple was eaten; check if snake survived
+            if len(self.snake.body) < 1:
+                return True  # Snake died from eating red apple
+            else:
+                return False  # Snake survived eating red apple
+
+        # Check wall and body collisions
+        if self._check_wall_and_body_collision(head):
+            return True
+
+        # No collision
+        self.last_happening = LastHappening.NO_COLLISION
+        return False
+
+    def _eat_green_apple(self, head):
+        # Check if eating a green apple
+        # Returns True if eaten, False otherwise
+        for apple in self.green_apples:
+            if head == apple.position:
+                occupied_positions = set(self.snake.body +
+                                       [apple.position for apple in self.green_apples] +
+                                       [self.red_apple.position])
+                apple.relocate(self.grid_size, occupied_positions)
+                self.last_happening = LastHappening.GREEN_APPLE_EATEN
+                return True
+        return False
+
+    def _eat_red_apple(self, head):
+        # Check if eating the red apple
+        # Returns True if red apple was eaten, False otherwise
+        if head == self.red_apple.position:
+            occupied_positions = set(self.snake.body +
+                                   [apple.position for apple in self.green_apples] +
+                                   [self.red_apple.position])
+            self.red_apple.relocate(self.grid_size, occupied_positions)
+            self.snake.shrink()
+            self.last_happening = LastHappening.RED_APPLE_EATEN
+            return True  # Red apple was eaten (caller checks snake survival)
+        return False
+
+    def _check_wall_and_body_collision(self, head):
+        # Check for wall and body collisions
+        # Returns True if collision, False otherwise
 
         # Wall collision
         if (head[0] < 0 or head[0] >= self.grid_size or
@@ -321,36 +368,6 @@ manually.")
         if head in self.snake.body[1:]:
             return True
 
-        # Apple eating
-        occupied_positions = set(self.snake.body +
-                                 [apple.position for apple
-                                  in self.green_apples] +
-                                 [self.red_apple.position])
-
-        for apple in self.green_apples:
-            if head == apple.position:
-                # print("Green apple eaten")
-                # self.snake.grow()
-                apple.relocate(self.grid_size, occupied_positions)
-                self.last_happening = LastHappening.GREEN_APPLE_EATEN
-                return False
-
-        if head == self.red_apple.position:
-            self.red_apple.relocate(self.grid_size, occupied_positions)
-
-            # print("Red apple eaten")
-            self.snake.shrink()
-            if len(self.snake.body) > 1:
-                self.snake.shrink()
-                self.red_apple.relocate(self.grid_size, set(self.snake.body + [apple.position for apple in self.green_apples] + [self.red_apple.position]))
-                self.last_happening = LastHappening.RED_APPLE_EATEN
-                return False
-            else:
-                return True
-
-        # print("No collision")
-        self.snake.shrink()
-        self.last_happening = LastHappening.NO_COLLISION
         return False
 
     def _reset_apples(self):
