@@ -307,14 +307,14 @@ manually.")
         head = self.snake.body[0]
 
         # Check green apples first (before popping tail)
-        if self._eat_green_apple(head):
+        if self._check_if_ate_green_apple(head):
             return False
 
         # Pop the tail before checking red apples and collisions
         self.snake.shrink()
 
         # Check red apples
-        if self._eat_red_apple(head):
+        if self._check_if_ate_red_apple(head):
             # Red apple was eaten; check if snake survived
             if len(self.snake.body) < 1:
                 return True  # Snake died from eating red apple
@@ -329,7 +329,7 @@ manually.")
         self.last_happening = LastHappening.NO_COLLISION
         return False
 
-    def _eat_green_apple(self, head):
+    def _check_if_ate_green_apple(self, head):
         # Check if eating a green apple
         # Returns True if eaten, False otherwise
         for apple in self.green_apples:
@@ -342,7 +342,7 @@ manually.")
                 return True
         return False
 
-    def _eat_red_apple(self, head):
+    def _check_if_ate_red_apple(self, head):
         # Check if eating the red apple
         # Returns True if red apple was eaten, False otherwise
         if head == self.red_apple.position:
