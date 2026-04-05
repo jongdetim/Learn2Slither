@@ -35,7 +35,7 @@ class QLearningAgent(Agent):
         self.epsilon_decay = epsilon_decay
         self.minimum_epsilon = minimum_epsilon
         self.q_table = defaultdict(lambda: defaultdict(float))  # Default Q-values to 0.0
-        
+
         # Replay buffer
         self.buffer = deque(maxlen=buffer_size)
         self.batch_size = batch_size
@@ -88,7 +88,7 @@ class QLearningAgent(Agent):
             return  # Not enough experiences to sample a full batch
 
         batch = random.sample(self.buffer, self.batch_size)
-        
+
         for state, action, reward, next_state, done in batch:
             # Determine the list of possible actions for the next_state
             next_actions = list(self.q_table[next_state].keys()) if not done else []
