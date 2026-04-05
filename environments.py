@@ -38,8 +38,8 @@ class SnakeEnvironment:
         #     print(simple_vision)
         #     self.print_raw_snake_vision(self.game.grid_size, self.game.snake.body[0], raw_vision)
         # return convert_nested_list_to_tuple(rich_vision) if not done else "terminal", reward, self.possible_actions, done
-        # return (simplest_vision if not done else "terminal"), reward, self.possible_actions, done, snake_length
-        return (simple_vision if not done else "terminal"), reward, self.possible_actions, done, snake_length
+        return (simplest_vision if not done else "terminal"), reward, self.possible_actions, done, snake_length
+        # return (simple_vision if not done else "terminal"), reward, self.possible_actions, done, snake_length
 
     def get_simple_vision(self, rich_vision):
         '''
@@ -54,8 +54,10 @@ class SnakeEnvironment:
         # 0: green, 1: red, 2: wall, 3: snake
         moves = "GRWS"
         for direction in nearest_objects:
-            simple_vision.append("C" if direction[0] == 1 and (moves[direction[1]] == "W" or moves[direction[1]] == "S" else moves[direction[1]])
-        
+            simple_vision.append("C" if direction[0] == 1 and
+                                 (moves[direction[1]] == "W" or moves[direction[1]] == "S")
+                                 else moves[direction[1]])
+
         simple_vision = tuple(simple_vision)
         # print(rich_vision)
         # print(simple_vision)

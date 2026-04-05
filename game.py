@@ -154,7 +154,7 @@ class SnakeGame:
     def _init_pygame_window(self):
         pg.init()
         self.screen = pg.display.set_mode((self.screen_size,
-                                            self.screen_size))
+                                           self.screen_size))
         pg.display.set_caption("Snake")
         self.clock = pg.time.Clock()
         self.font = pg.font.Font(None, 69)
