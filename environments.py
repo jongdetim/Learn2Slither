@@ -32,14 +32,51 @@ class SnakeEnvironment:
 
     def get_game_data(self): # converts vision to tuple and returns vision/state, reward, possible actions, done
         reward, rich_vision, raw_vision, done, snake_length = self.interpret(*self.game.get_data())
-        # GRWC_vision = self.get_GRWC_vision(rich_vision)
-        GRNC_vision = self.get_GRNC_vision(rich_vision)
-        # if not done:
-        #     print(simple_vision)
-        #     self.print_raw_snake_vision(self.game.grid_size, self.game.snake.body[0], raw_vision)
-        # return convert_nested_list_to_tuple(rich_vision) if not done else "terminal", reward, self.possible_actions, done
-        return (GRNC_vision if not done else "terminal"), reward, self.possible_actions, done, snake_length
-        # return (simple_vision if not done else "terminal"), reward, self.possible_actions, done, snake_length
+        if not done:
+            # GRWC_vision = self.get_GRWC_vision(rich_vision)
+            # GRNC_vision = self.get_GRNC_vision(rich_vision)
+            eleven_state_vision = self.get_depth_vision(rich_vision)
+            return eleven_state_vision, reward, self.possible_actions, done, snake_length
+
+        return "terminal", reward, self.possible_actions, done, snake_length
+
+    def get_depth_vision(self, rich_vision):
+        '''
+        Converts rich_vision to a tuple of 11 states: Green at ANY distance,
+        Red at distance 1 and distance > 1,
+        Wall at distance 1, 2, 3, 4+, Snake at distance 1, 2, 3, 4+
+        '''
+        depth_vision = []
+        nearest_objects = [min((value, type) for type, value
+                           in enumerate(direction) if value is not None)
+                           for direction in rich_vision]
+        # 0: green, 1: red, 2: wall, 3: snake
+        moves = "GRWS"
+        for direction in nearest_objects:
+            if moves[direction[1]] == "G":
+                depth_vision.append("G")
+            elif moves[direction[1]] == "R":
+                depth_vision.append("R1" if direction[0] == 1 else "R")
+            elif moves[direction[1]] == "W":
+                if direction[0] == 1:
+                    depth_vision.append("W1")
+                elif direction[0] == 2:
+                    depth_vision.append("W2")
+                elif direction[0] == 3:
+                    depth_vision.append("W3")
+                else:
+                    depth_vision.append("W")
+            elif moves[direction[1]] == "S":
+                if direction[0] == 1:
+                    depth_vision.append("S1")
+                elif direction[0] == 2:
+                    depth_vision.append("S2")
+                elif direction[0] == 3:
+                    depth_vision.append("S3")
+                else:
+                    depth_vision.append("S")
+        # print(depth_vision)
+        return tuple(depth_vision)
 
     def get_GRWC_vision(self, rich_vision):
         '''
