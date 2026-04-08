@@ -75,7 +75,6 @@ class SnakeEnvironment:
                     depth_vision.append("S3")
                 else:
                     depth_vision.append("S")
-        # print(depth_vision)
         return tuple(depth_vision)
 
     def get_GRWC_vision(self, rich_vision):

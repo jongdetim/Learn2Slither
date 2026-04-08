@@ -11,10 +11,10 @@ class LastHappening(Enum):
     def reward(self):
         rewards = {
             LastHappening.NONE: 0,
-            LastHappening.NO_COLLISION: -1,
+            LastHappening.NO_COLLISION: -2,
             LastHappening.GREEN_APPLE_EATEN: 20,
             LastHappening.RED_APPLE_EATEN: -20,
-            LastHappening.DIED: -1000,
+            LastHappening.DIED: -400,
         }
         return rewards[self]
 

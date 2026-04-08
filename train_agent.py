@@ -1,3 +1,4 @@
+from constants import LastHappening
 from game import SnakeGame
 from agents import QLearningAgent
 from environments import SnakeEnvironment
@@ -30,6 +31,9 @@ def train_agent(agent, environment, episodes, max_steps_per_episode):
 
             if done:
                 break
+        else:
+            # agent timed out. Instead, store experience with death penalty
+            pass
 
         # Train the agent at the end of the episode
         agent.train()
@@ -39,7 +43,7 @@ def train_agent(agent, environment, episodes, max_steps_per_episode):
 def play_game(agent, environment, max_steps_per_episode, delay=0.2, ignore_exploration=True):
     """
     Play a game using the trained agent.
-    
+
     Args:
         agent: An object with `act` method.
         environment: An object with `reset`, `step(action)`, and optionally `render` methods.
@@ -67,7 +71,7 @@ def play_game(agent, environment, max_steps_per_episode, delay=0.2, ignore_explo
 def benchmark_agent(agent, environment, games, max_steps_per_episode):
     """
     Benchmark the agent by playing multiple games and calculating the average snake length and step count.
-    
+
     Args:
         agent: An object with `act` method.
         environment: An object with `reset`, `step(action)`, and optionally `render` methods.
@@ -87,30 +91,36 @@ def benchmark_agent(agent, environment, games, max_steps_per_episode):
 
     average_steps = total_steps / games
     average_snake_length = total_snake_length / games
+    average_total_reward = total_reward / games
 
     print(f"Average Steps: {average_steps}")
     print(f"Average Snake Length: {average_snake_length}")
     print(f"Max Snake Length: {max_snake_length}")
+    print(f"Average Total Reward: {average_total_reward}")
 
 
 if __name__ == "__main__":
     game = SnakeGame(render=False)
     environment = SnakeEnvironment(game)
-    agent = QLearningAgent(alpha=0.1, gamma=0.95, epsilon_decay=0.99983, epsilon=0.9, buffer_size=10000, batch_size=512)
+    agent = QLearningAgent(alpha=0.1, gamma=0.8, epsilon_decay=0.99986, epsilon=0.9, minimum_epsilon=0.02, buffer_size=10000, batch_size=512)
 
-    train_agent(agent, environment, episodes=30000, max_steps_per_episode=1000)
+    # train_agent(agent, environment, episodes=50000, max_steps_per_episode=1000)
 
     # # save model
-    # agent.save("")
+    # agent.save("depth_vision_agent_50k_08gamma.pkl")
 
     # load model
     # agent.load("best_model_GRNC_10k_agent.pkl")
-    agent.load("depth_vision_agent_30k.pkl")
+    # agent.load("depth_vision_agent_10k.pkl")
+    # agent.load("depth_vision_agent_15k_08gamma.pkl")
+    agent.load("depth_vision_agent_50k_08gamma.pkl")
 
     # for state, actions in list(agent.get_q_table().items())[:20]:  # Display the first 20 states
     #     print(f"State: {state}, Actions: {dict(actions)}")
 
-    benchmark_agent(agent, environment, 100, max_steps_per_episode=1000)
+    print(agent.q_table.__len__())
+
+    # benchmark_agent(agent, environment, 100, max_steps_per_episode=1000)
     # play a game with the model
     game.init_rendering()
     play_game(agent, environment, max_steps_per_episode=1000)

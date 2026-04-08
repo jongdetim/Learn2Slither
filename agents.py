@@ -50,7 +50,11 @@ class QLearningAgent(Agent):
             Action: Chosen action.
         """
         if not ignore_exploration and random.uniform(0, 1) < max(self.minimum_epsilon, self.epsilon):
+            # print("agent is exploring")
             return random.choice(actions)  # Explore
+        # print("agent is exploiting")
+        # print("Current state:", state)
+        # print("Q-values for current state:", self.q_table[state])
         return max(actions, key=lambda action: self.q_table[state][action])  # Exploit
 
     def update(self, state, action, reward, next_state, next_actions):
