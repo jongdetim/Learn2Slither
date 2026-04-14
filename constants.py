@@ -18,6 +18,7 @@ class LastHappening(Enum):
         }
         return rewards[self]
 
+
 class Directions(Enum):
     LEFT = (-1, 0)
     UP = (0, -1)
@@ -28,7 +29,7 @@ class Directions(Enum):
     def from_tuple(cls, direction_tuple):
         for direction in cls:
             if direction.value == direction_tuple:
-                return direction.name
+                return direction
         raise ValueError(f"Invalid direction tuple: {direction_tuple}")
 
 # Example usage

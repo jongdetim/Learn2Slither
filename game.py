@@ -86,8 +86,10 @@ class Snake:
         return new_direction
 
     def move(self, new_direction):
+        print("move", new_direction.name)
+        print("current direction", self.direction.name)
         if len(self.body) == 1 or \
-         not self.is_opposite_direction(new_direction):
+                not self.is_opposite_direction(new_direction):
             self.direction = new_direction
         head_x, head_y = self.body[0]
         new_head = (head_x + self.direction.value[0], head_y + self.direction.value[1])
@@ -230,8 +232,7 @@ manually.")
     def _update_game_state(self, move_direction):
         self.snake.move(move_direction)
         if self._check_interactions():
-            # when the snake has crashed or became too small
-            # print("died")
+            # True if the snake has died, False otherwise.
             self.last_happening = LastHappening.DIED
             self.game_over = True
 

@@ -53,11 +53,12 @@ def play_game(agent, environment, delay=0.2, ignore_exploration=True):
         steps += 1
 
         sleep(delay)  # Delay to better visualize the game
+        if total_reward == -1000 and stats == 3 and steps == 1:
+            print(environment.game.snake.body, action.name)
 
     print(f"Total Reward: {total_reward}")
     print(f"Snake Length: {stats} steps: {steps}")
-    if total_reward == -1000 and stats == 3 and steps == 1:
-        sleep(1)
+    
     return total_reward, steps, stats
 
 

@@ -34,6 +34,8 @@ class SnakeEnvironment:
         self.step_count += 1
         state, reward, actions, done, stats = self.get_game_data()
         if self.max_steps and self.step_count >= self.max_steps:
+            # optional timeout condition: if the agent takes too long,
+            # end the episode with a negative reward
             reward = LastHappening.DIED.reward()
             done = True
         return state, reward, actions, done, stats
