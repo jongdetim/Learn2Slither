@@ -18,19 +18,28 @@ class SnakeEnvironment:
     # available moves to avoid going back or even to avoid hitting the wall
     possible_actions = list(Directions)
 
-    def __init__(self, snake_game):
+    def __init__(self, snake_game, max_steps_per_episode=None):
         self.game = snake_game
+        self.max_steps = max_steps_per_episode
+        self.step_count = 0
 
     def reset(self):
         self.game.reset()
+        self.step_count = 0
         return self.get_game_data()
 
     def step(self, action):
         # print(action.name)
         self.game.step(action)
-        return self.get_game_data()
+        self.step_count += 1
+        state, reward, actions, done, stats = self.get_game_data()
+        if self.max_steps and self.step_count >= self.max_steps:
+            reward = LastHappening.DIED.reward()
+            done = True
+        return state, reward, actions, done, stats
 
-    def get_game_data(self): # converts vision to tuple and returns vision/state, reward, possible actions, done
+    def get_game_data(self):
+        # converts vision to tuple and returns vision/state, reward, possible actions, done
         reward, rich_vision, raw_vision, done, snake_length = self.interpret(*self.game.get_data())
         if not done:
             # GRWC_vision = self.get_GRWC_vision(rich_vision)
